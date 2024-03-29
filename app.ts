@@ -2,6 +2,8 @@ import express from 'express'
 import bodyParser from 'body-parser'
 import { graphqlHTTP } from 'express-graphql'
 import { buildSchema } from 'graphql'
+import mongoose from 'mongoose'
+import { EventDoc, EventModel } from './models/event'
 
 const app = express()
 
@@ -9,10 +11,8 @@ type Event = {
   title: string
   description: string
   price: number
-  date?: string
+  date?: Date
 }
-
-const events: Event[] = []
 
 app.use(bodyParser.json())
 app.use(
@@ -47,26 +47,57 @@ app.use(
       }
     `),
     rootValue: {
-      events: () => {
-        return events
+      events: async () => {
+        try {
+          const events = await EventModel.find()
+          const result: Event[] = events.map(
+            ({ id, title, description, price, date }) => {
+              return {
+                _id: id,
+                title,
+                description,
+                price,
+                date,
+              }
+            }
+          )
+          console.log(result)
+          return result
+        } catch (err) {
+          console.log(err)
+          throw err
+        }
       },
-      createEvent: ({ eventInput }: {eventInput: Event}): Event => {
+      createEvent: async ({ eventInput }: { eventInput: Event }) => {
         const { title, description, price } = eventInput
-        
-        console.log(eventInput)
-        const event = {
-          _id: Math.random().toString(),
+        const event = new EventModel({
           title,
           description,
           price: +price,
-          date: new Date().toISOString(),
+          date: new Date(),
+        })
+
+        try {
+          const result = await event.save()
+          console.log(result)
+          return result
+        } catch (err) {
+          console.log(err)
+          throw err
         }
-        events.push(event)
-        return event
       },
     },
     graphiql: true,
   })
 )
-
-app.listen(3000)
+mongoose
+  .connect(
+    `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSOWRD}@cluster0.bnb7qpm.mongodb.net/${process.env.MONGO_DB}?retryWrites=true&w=majority`
+  )
+  .then(() => {
+    console.log('Conneciton succeeded')
+    app.listen(3000)
+  })
+  .catch((err) => {
+    console.log(err)
+  })
