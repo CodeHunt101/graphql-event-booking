@@ -3,7 +3,7 @@ import bodyParser from 'body-parser'
 import { graphqlHTTP } from 'express-graphql'
 import { buildSchema } from 'graphql'
 import mongoose from 'mongoose'
-import { EventDoc, EventModel } from './models/event'
+import { EventModel } from './models/event'
 
 const app = express()
 
@@ -90,14 +90,18 @@ app.use(
     graphiql: true,
   })
 )
-mongoose
-  .connect(
-    `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSOWRD}@cluster0.bnb7qpm.mongodb.net/${process.env.MONGO_DB}?retryWrites=true&w=majority`
-  )
-  .then(() => {
-    console.log('Conneciton succeeded')
+
+async function connectToDatabase() {
+  try {
+    await mongoose.connect(
+      `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSOWRD}@cluster0.bnb7qpm.mongodb.net/${process.env.MONGO_DB}?retryWrites=true&w=majority`,
+      { useNewUrlParser: true, useUnifiedTopology: true }
+    )
+    console.log('Connection succeeded')
     app.listen(3000)
-  })
-  .catch((err) => {
+  } catch (err) {
     console.log(err)
-  })
+  }
+}
+
+connectToDatabase()
