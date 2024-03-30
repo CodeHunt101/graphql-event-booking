@@ -4,14 +4,21 @@ import { graphqlHTTP } from 'express-graphql'
 import { buildSchema } from 'graphql'
 import mongoose from 'mongoose'
 import { EventModel } from './models/event'
+import { UserModel } from './models/user'
+import bcrypt from 'bcryptjs'
 
 const app = express()
 
-type Event = {
+export type Event = {
   title: string
   description: string
   price: number
   date?: Date
+}
+
+export type User = {
+  email: string
+  password: string
 }
 
 app.use(bodyParser.json())
@@ -27,10 +34,21 @@ app.use(
         date: String!
       }
 
+      type User {
+        _id: ID!
+        email: String!
+        password: String
+      }
+
       input EventInput {
         title: String!
         description: String!
         price: Float!
+      }
+
+      input UserInput {
+        email: String!
+        password: String!
       }
 
       type RootQuery {
@@ -39,6 +57,7 @@ app.use(
 
       type RootMutation {
         createEvent(eventInput: EventInput): Event
+        createUser(userInput: UserInput): User
       }
 
       schema {
@@ -75,12 +94,38 @@ app.use(
           description,
           price: +price,
           date: new Date(),
+          creator: '66075c683472cd08e87ae1b0', //Dummy value until users can create events
         })
 
         try {
-          const result = await event.save()
+          const savedEvent = await event.save()
+          const foundUser = await UserModel.findById('66075c683472cd08e87ae1b0') //Dummy value until users can create events
+          if (!foundUser) {
+            throw new Error('User not found')
+          }
+          foundUser.createdEvents?.push(event)
+          await foundUser.save()
+          return savedEvent
+        } catch (err) {
+          console.log(err)
+          throw err
+        }
+      },
+      createUser: async ({ userInput }: { userInput: User }) => {
+        const { email, password } = userInput
+        try {
+          const foundUser = await UserModel.findOne({ email })
+          if (foundUser) {
+            throw new Error('User already exists')
+          }
+          const hashedPassword = await bcrypt.hash(password, 12)
+          const user = new UserModel({
+            email,
+            password: hashedPassword,
+          })
+          const result = await user.save()
           console.log(result)
-          return result
+          return { ...result._doc, password: null }
         } catch (err) {
           console.log(err)
           throw err

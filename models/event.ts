@@ -19,6 +19,10 @@ const eventSchema = new Schema({
     type: Date,
     required: true,
   },
+  creator: {
+    type: Schema.Types.ObjectId,
+    ref: 'User'
+  }
 })
 
 export interface EventDoc extends mongoose.Document {
