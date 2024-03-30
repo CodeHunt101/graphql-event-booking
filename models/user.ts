@@ -22,7 +22,6 @@ const userSchema = new Schema({
 
 export interface UserDoc extends mongoose.Document {
   [x: string]: any
-  _id: string
   email: string
   password: string
   createdEvents?: EventDoc[]

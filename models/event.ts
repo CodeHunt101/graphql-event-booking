@@ -1,4 +1,5 @@
 import mongoose from 'mongoose'
+import { UserDoc } from './user'
 
 const Schema = mongoose.Schema
 
@@ -26,11 +27,12 @@ const eventSchema = new Schema({
 })
 
 export interface EventDoc extends mongoose.Document {
-  _id: string
+  [x: string]: any
   title: string
   description: string
   date: Date
   price: number
+  creator: UserDoc
 }
 
 export const EventModel = mongoose.model<EventDoc>('Event', eventSchema)
