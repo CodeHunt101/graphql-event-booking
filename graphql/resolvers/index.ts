@@ -1,10 +1,9 @@
 import bcrypt from 'bcryptjs'
 import { EventDoc, EventModel } from '../../models/event'
 import { UserDoc, UserModel } from '../../models/user'
-import mongoose from 'mongoose'
 
 const events = async (
-  eventIds: EventDoc[] | undefined
+  eventIds: EventDoc[]
 ): Promise<EventDoc[]> => {
   try {
     const foundEvents = await EventModel.find({ _id: { $in: eventIds } })
@@ -12,8 +11,8 @@ const events = async (
       return {
         ...event._doc,
         _id: event.id,
-        creator: () => user(event.creator),
         date: event.date.toISOString(),
+        creator: () => user(event.creator),
       }
     })
   } catch (err) {
@@ -24,10 +23,13 @@ const events = async (
 const user = async (userId: UserDoc): Promise<UserDoc> => {
   try {
     const foundUser = await UserModel.findById(userId)
+    if (!foundUser) {
+      throw new Error('User not found')
+    }
     return {
-      ...foundUser?._doc,
-      _id: foundUser?.id,
-      createdEvents: () => events(foundUser?.createdEvents),
+      ...foundUser._doc,
+      _id: foundUser.id,
+      createdEvents: () => events(foundUser.createdEvents),
     }
   } catch (err) {
     throw err

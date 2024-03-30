@@ -24,7 +24,7 @@ export interface UserDoc extends mongoose.Document {
   [x: string]: any
   email: string
   password: string
-  createdEvents?: EventDoc[]
+  createdEvents: EventDoc[]
 }
 
 export const UserModel = mongoose.model<UserDoc>('User', userSchema)
