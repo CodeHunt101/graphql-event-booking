@@ -1,10 +1,9 @@
 import bcrypt from 'bcryptjs'
 import { EventDoc, EventModel } from '../../models/event'
 import { UserDoc, UserModel } from '../../models/user'
+import { BookingModel, BookingDoc } from '../../models/booking'
 
-const events = async (
-  eventIds: EventDoc[]
-): Promise<EventDoc[]> => {
+const fetchEvents = async (eventIds: EventDoc[]): Promise<EventDoc[]> => {
   try {
     const foundEvents = await EventModel.find({ _id: { $in: eventIds } })
     return foundEvents.map((event) => {
@@ -12,7 +11,7 @@ const events = async (
         ...event._doc,
         _id: event.id,
         date: event.date.toISOString(),
-        creator: () => user(event.creator),
+        creator: () => fetchUser(event.creator),
       }
     })
   } catch (err) {
@@ -20,7 +19,7 @@ const events = async (
   }
 }
 
-const user = async (userId: UserDoc): Promise<UserDoc> => {
+const fetchUser = async (userId: UserDoc): Promise<UserDoc> => {
   try {
     const foundUser = await UserModel.findById(userId)
     if (!foundUser) {
@@ -29,7 +28,24 @@ const user = async (userId: UserDoc): Promise<UserDoc> => {
     return {
       ...foundUser._doc,
       _id: foundUser.id,
-      createdEvents: () => events(foundUser.createdEvents),
+      createdEvents: () => fetchEvents(foundUser.createdEvents),
+    }
+  } catch (err) {
+    throw err
+  }
+}
+
+const fetchEvent = async (eventId: EventDoc): Promise<EventDoc> => {
+  try {
+    const foundEvent = await EventModel.findById(eventId)
+    if (!foundEvent) {
+      throw new Error('Event not found')
+    }
+    return {
+      ...foundEvent._doc,
+      _id: foundEvent.id,
+      date: foundEvent.date.toISOString(),
+      creator: () => fetchUser(foundEvent.creator),
     }
   } catch (err) {
     throw err
@@ -48,7 +64,28 @@ export const graphQlResolvers = {
             description,
             price,
             date: date.toISOString(),
-            creator: () => user(creator),
+            creator: () => fetchUser(creator),
+          }
+        }
+      )
+      console.log(result)
+      return result
+    } catch (err) {
+      console.log(err)
+      throw err
+    }
+  },
+  bookings: async () => {
+    try {
+      const bookings = await BookingModel.find()
+      const result = bookings.map(
+        ({ id, event, user, createdAt, updatedAt }) => {
+          return {
+            _id: id,
+            event: () => fetchEvent(event),
+            user: () => fetchUser(user),
+            createdAt: new Date(createdAt).toISOString(),
+            updatedAt: new Date(updatedAt).toISOString(),
           }
         }
       )
@@ -83,7 +120,7 @@ export const graphQlResolvers = {
       await foundUser.save()
       const result = {
         ...savedEvent._doc,
-        creator: () => user(savedEvent.creator),
+        creator: () => fetchUser(savedEvent.creator),
         date: savedEvent.date.toISOString(),
       }
       console.log(result)
@@ -112,6 +149,48 @@ export const graphQlResolvers = {
       const result = await user.save()
       console.log({ ...result._doc, password: null })
       return { ...result._doc, password: null }
+    } catch (err) {
+      console.log(err)
+      throw err
+    }
+  },
+  bookEvent: async ({ eventId }: EventDoc) => {
+    try {
+      const foundEvent = await EventModel.findById(eventId)
+      const booking = new BookingModel({
+        user: '66077b162fc1a998a05a4be4',
+        event: foundEvent,
+      })
+      const result = await booking.save()
+      return {
+        ...result._doc,
+        event: () => fetchEvent(booking.event),
+        user: () => fetchUser(booking.user),
+        createdAt: new Date(result._doc.createdAt).toISOString(),
+        updatedAt: new Date(result._doc.updatedAt).toISOString(),
+      }
+    } catch (err) {
+      console.log(err)
+      throw err
+    }
+  },
+  cancelBooking: async ({ bookingId }: BookingDoc) => {
+    try {
+      const foundBooking = await BookingModel.findById(bookingId).populate(
+        'event'
+      )
+      if (!foundBooking) {
+        throw new Error('No booking found')
+      }
+
+      const foundEvent = {
+        ...foundBooking.event._doc,
+        _id: foundBooking.event.id,
+        date: foundBooking.date.toISOString(),
+        creator: () => fetchUser(foundBooking.event._doc.creator),
+      }
+      await BookingModel.findByIdAndDelete(bookingId)
+      return foundEvent
     } catch (err) {
       console.log(err)
       throw err
