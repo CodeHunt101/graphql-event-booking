@@ -3,7 +3,7 @@ import bodyParser from 'body-parser'
 import mongoose from 'mongoose'
 import { graphqlHTTP } from 'express-graphql'
 import { graphQlSchema } from './graphql/schema'
-import { graphQlResolvers } from './graphql/resolvers'
+import { rootResolvers } from './graphql/resolvers'
 
 const app = express()
 
@@ -13,7 +13,7 @@ app.use(
   '/graphql',
   graphqlHTTP({
     schema: graphQlSchema,
-    rootValue: graphQlResolvers,
+    rootValue: rootResolvers,
     graphiql: true,
   })
 )

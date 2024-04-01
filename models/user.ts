@@ -15,9 +15,9 @@ const userSchema = new Schema({
   createdEvents: [
     {
       type: Schema.Types.ObjectId,
-      ref: 'Event'
-    }
-  ]
+      ref: 'Event',
+    },
+  ],
 })
 
 export interface UserDoc extends mongoose.Document {
