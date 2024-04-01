@@ -1,7 +1,9 @@
+import { Request } from 'express'
 import { dateToString } from '../../helpers/date'
 import { EventDoc, EventModel } from '../../models/event'
 import { UserModel } from '../../models/user'
 import { fetchUser } from './merge'
+import { IGetUserAuthInfoRequest } from '../../middleware/is-auth'
 
 export const transformEvent = ({ _doc, id, date, creator }: EventDoc) => ({
   ..._doc,
@@ -22,23 +24,29 @@ export const eventResolvers = {
       throw err
     }
   },
-  createEvent: async ({
-    eventInput,
-  }: {
-    eventInput: EventDoc
-  }): Promise<EventDoc> => {
+  createEvent: async (
+    {
+      eventInput,
+    }: {
+      eventInput: EventDoc
+    },
+    req: IGetUserAuthInfoRequest
+  ): Promise<EventDoc> => {
+    if (!req.isAuth) {
+      throw new Error('Unauthenticated')
+    }
     const { title, description, price, date } = eventInput
     const event = new EventModel({
       title,
       description,
       price: +price,
       date,
-      creator: '66077b162fc1a998a05a4be4', //Dummy value until users can create events
+      creator: req.userId, //Dummy value until users can create events
     })
 
     try {
       const savedEvent = await event.save()
-      const foundUser = await UserModel.findById('66077b162fc1a998a05a4be4') //Dummy value until users can create events
+      const foundUser = await UserModel.findById(req.userId) //Dummy value until users can create events
       if (!foundUser) {
         throw new Error('User not found')
       }

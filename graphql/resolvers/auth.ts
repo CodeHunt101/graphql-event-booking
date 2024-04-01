@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs'
 import { UserDoc, UserModel } from '../../models/user'
+import jwt from 'jsonwebtoken'
 
 export const authResolvers = {
   createUser: async ({
@@ -25,5 +26,27 @@ export const authResolvers = {
       console.log(err)
       throw err
     }
+  },
+  login: async ({ email, password }: { email: string; password: string }) => {
+    const foundUser = await UserModel.findOne({ email })
+    if (!foundUser) {
+      throw new Error('User does not exist')
+    }
+    const isPasswordEqual = await bcrypt.compare(password, foundUser.password)
+    console.log({ isPasswordEqual })
+    if (!isPasswordEqual) {
+      throw new Error('Password is incorrect')
+    }
+    const token = jwt.sign(
+      {
+        userId: foundUser.id,
+        email: foundUser.email,
+      },
+      'somesupersecretkey',
+      {
+        expiresIn: '1h',
+      }
+    )
+    return { userId: foundUser.id, token, tokenExpiration: 1 }
   },
 }

@@ -3,6 +3,7 @@ import { BookingDoc, BookingModel } from '../../models/booking'
 import { EventDoc, EventModel } from '../../models/event'
 import { transformEvent } from './events'
 import { fetchEvent, fetchUser } from './merge'
+import { IGetUserAuthInfoRequest } from '../../middleware/is-auth'
 
 export const transformBooking = ({
   id,
@@ -19,7 +20,10 @@ export const transformBooking = ({
 })
 
 export const bookingResolvers = {
-  bookings: async () => {
+  bookings: async (_: any, req: IGetUserAuthInfoRequest) => {
+    if (!req.isAuth) {
+      throw new Error('Unauthenticated')
+    }
     try {
       const bookings = await BookingModel.find()
       const result = bookings.map(transformBooking)
@@ -30,11 +34,14 @@ export const bookingResolvers = {
       throw err
     }
   },
-  bookEvent: async ({ eventId }: EventDoc) => {
+  bookEvent: async ({ eventId }: EventDoc, req: IGetUserAuthInfoRequest) => {
+    if (!req.isAuth) {
+      throw new Error('Unauthenticated')
+    }
     try {
       const foundEvent = await EventModel.findById(eventId)
       const booking = new BookingModel({
-        user: '66077b162fc1a998a05a4be4',
+        user: req.userId,
         event: foundEvent,
       })
       const result = await booking.save()
@@ -44,7 +51,13 @@ export const bookingResolvers = {
       throw err
     }
   },
-  cancelBooking: async ({ bookingId }: BookingDoc) => {
+  cancelBooking: async (
+    { bookingId }: BookingDoc,
+    req: IGetUserAuthInfoRequest
+  ) => {
+    if (!req.isAuth) {
+      throw new Error('Unauthenticated')
+    }
     try {
       const foundBooking = await BookingModel.findById(bookingId).populate(
         'event'
