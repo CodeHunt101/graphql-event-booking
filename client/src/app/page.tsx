@@ -1,8 +1,11 @@
-import Image from "next/image";
-import AuthPage from "./auth/page";
+'use client'
+import { useContext } from 'react'
+import AuthPage from './auth/page'
+import AuthContext from './context/auth-context'
+import { redirect } from 'next/navigation'
 
 export default function Home() {
-  return (
-    <AuthPage/>
-  );
+  const { token } = useContext(AuthContext)
+  if (token) redirect('/events')
+  return <AuthPage />
 }

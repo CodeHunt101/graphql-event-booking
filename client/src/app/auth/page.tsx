@@ -1,14 +1,18 @@
 'use client'
-import { useRef, FormEvent, useState } from 'react'
+import { useRef, FormEvent, useState, useContext } from 'react'
 import './styles.css'
+import AuthContext from '../context/auth-context'
+import { redirect } from 'next/navigation'
 
 const AuthPage = () => {
   const emailRef = useRef<HTMLInputElement>(null)
   const passwordRef = useRef<HTMLInputElement>(null)
   const [islogin, setIsLogin] = useState(true)
+  const { token, userId, login, logout } = useContext(AuthContext)
+  if (token) redirect('/events')
 
   const handleSwitchMode = () => {
-    setIsLogin(()=>!islogin)
+    setIsLogin(() => !islogin)
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -53,11 +57,20 @@ const AuthPage = () => {
           'Content-Type': 'application/json',
         },
       })
-      if (response.status !==200 && response.status !== 201) {
+      if (response.status !== 200 && response.status !== 201) {
         throw new Error('Failed!')
       }
-      console.log({ response: await response.json() })
-      return response.json()
+
+      const jsonResp = await response.json()
+      if (jsonResp.data && login) {
+        login(
+          jsonResp.data.login.token,
+          jsonResp.data.login.userId,
+          jsonResp.data.login.tokenExpiration
+        )
+      }
+      console.log({ response: jsonResp })
+      return jsonResp
     } catch (error) {
       console.log(error)
     }
