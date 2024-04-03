@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import MainNavBar from './components/Navigation/MainNavBar'
-import AuthContext from './context/auth-context'
 import Providers from './context/providers/providers'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -18,14 +17,12 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} prose`}>
+    <html lang="en" data-theme="acid">
+      <body className={`${inter.className} prose m-auto`}>
         <Providers>
-          <MainNavBar/>
-          <main className="flex min-h-screen flex-col items-center justify-between p-24">
-            <div className="z-10 max-w-5xl w-full items-center justify-between font-mono lg:flex">
-              {children}
-            </div>
+          <MainNavBar />
+          <main className="z-10 max-w-5xl w-full items-center justify-between font-mono lg:flex">
+            {children}
           </main>
         </Providers>
       </body>
