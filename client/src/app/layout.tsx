@@ -21,7 +21,7 @@ export default function RootLayout({
       <body className={`${inter.className} prose m-auto`}>
         <Providers>
           <MainNavBar />
-          <main className="z-10 max-w-5xl w-full items-center justify-between font-mono lg:flex">
+          <main className="z-10 max-w-5xl w-full items-center justify-between font-mono">
             {children}
           </main>
         </Providers>
