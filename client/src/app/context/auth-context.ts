@@ -7,7 +7,7 @@ export type Login = (
 ) => void
 export type Logout = () => void
 
-type AuthContextProps = {
+export type AuthContextProps = {
   token?: string
   userId?: string
   login?: Login

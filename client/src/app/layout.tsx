@@ -18,10 +18,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" data-theme="acid">
-      <body className={`${inter.className} prose m-auto`}>
+      <body className={`${inter.className} prose m-auto max-w-5xl`}>
         <Providers>
           <MainNavBar />
-          <main className="z-10 max-w-5xl w-full items-center justify-between font-mono">
+          <main className="z-10 m-auto max-w-5xl w-full items-center justify-between font-mono">
             {children}
           </main>
         </Providers>
