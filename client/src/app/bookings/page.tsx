@@ -1,11 +1,20 @@
 'use client'
 import { redirect } from 'next/navigation'
 import { useContext } from 'react'
-import AuthContext from '../context/auth-context'
+import AuthContext, { AuthContextProps } from '../context/auth-context'
+import BookingList from './BookingList';
 const BookingsPage = () => {
-  const { token } = useContext(AuthContext)
+  const { token } = useContext<AuthContextProps>(AuthContext)
   if (!token) redirect('/auth')
-  return <h1>Bookings!</h1>
+  
+  return (
+    <div className="flex flex-col items-center">
+      <h3>Your Bookings!</h3>
+      <div className="flex flex-wrap justify-center gap-5">
+        <BookingList />
+      </div>
+    </div>
+  )
 }
 
 export default BookingsPage

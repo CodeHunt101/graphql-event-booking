@@ -2,8 +2,9 @@
 import { useRef, useContext, useEffect, useState } from 'react'
 import Modal from '../components/Modal/Modal'
 import AuthContext, { AuthContextProps } from '../context/auth-context'
-import EventItem from './EventItem'
 import { EventProps } from './EventItem'
+import EventList from './EventList'
+import CreateEventModalContent from './CreateEventModalContent'
 
 const EventsPage = () => {
   const { token, userId } = useContext<AuthContextProps>(AuthContext)
@@ -12,16 +13,9 @@ const EventsPage = () => {
   const priceRef = useRef<HTMLInputElement>(null)
   const dateRef = useRef<HTMLInputElement>(null)
   const descriptionRef = useRef<HTMLTextAreaElement>(null)
-  const [selectedEvent, setSelectedEvent] = useState<EventProps | null>(null)
 
   const showEventModal = (id: string) => {
-    (document.getElementById(id) as HTMLDialogElement).showModal()
-  }
-
-  const handleSelectEvent = (event: EventProps) => {
-    const selectedEvent = events?.find(e => e._id === event._id) ?? null
-    console.log({selectedEvent})
-    setSelectedEvent(()=>selectedEvent)
+    ;(document.getElementById(id) as HTMLDialogElement).showModal()
   }
 
   const fetchEvents = async () => {
@@ -61,66 +55,9 @@ const EventsPage = () => {
     }
   }
 
-  const renderEvents = () => {
-    return events.map((event, index) => {
-      return (
-        <div key={index}>
-          <EventItem
-            keyId={`event-details-${index}`}
-            event={event}
-            authUserId={userId}
-            showModal={() => showEventModal(`event-details-${index}`)}
-            selectEvent={handleSelectEvent}
-            confirmText={token ? 'Book' : 'Confirm'}
-            handleBookEvent={handleBookEvent}
-          />
-        </div>
-      )
-    })
-  }
-
   useEffect(() => {
     fetchEvents()
   }, [])
-
-  const handleBookEvent = async () => {
-    if (!token) {
-      setSelectedEvent(null)
-      return
-    }
-
-    if (!selectedEvent) return
-    const requestBody = {
-      query: `
-        mutation {
-          bookEvent(eventId: "${selectedEvent._id}") {
-            _id
-            createdAt
-            updatedAt
-          }
-        }
-      `,
-    }
-
-    try {
-      const response = await fetch('http://localhost:3000/graphql', {
-        method: 'POST',
-        body: JSON.stringify(requestBody),
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      if (response.status !== 200 && response.status !== 201) {
-        throw new Error('Failed!')
-      }
-      const jsonResp = await response.json()
-      console.log(jsonResp)
-      setSelectedEvent(null)
-    } catch (error) {
-      console.log(error)
-    }
-  }
 
   const handleModalConfirm = async () => {
     if (!userId) return
@@ -203,7 +140,7 @@ const EventsPage = () => {
         </button>
       )}
       <div className="flex flex-wrap justify-center gap-5">
-        {renderEvents()}
+        <EventList events={events} showEventModal={showEventModal} />
       </div>
       <Modal
         idName="create-event-modal"
@@ -212,41 +149,12 @@ const EventsPage = () => {
         confirmText="Confirm"
         onConfirm={handleModalConfirm}
       >
-        <h3 className="font-bold text-lg">Add Event</h3>
-        <form className="flex flex-col gap-3">
-          <label
-            className="input input-bordered flex items-center gap-2"
-            htmlFor="title"
-          >
-            Title
-            <input type="text" className="grow" id="title" ref={titleRef} />
-          </label>
-          <label
-            className="input input-bordered flex items-center gap-2"
-            htmlFor="price"
-          >
-            Price
-            <input type="number" className="grow" id="price" ref={priceRef} />
-          </label>
-          <label
-            className="input input-bordered flex items-center gap-2"
-            htmlFor="date"
-          >
-            Date
-            <input
-              type="datetime-local"
-              className="grow"
-              id="date"
-              ref={dateRef}
-            />
-          </label>
-          <textarea
-            className="textarea textarea-bordered"
-            placeholder="Description"
-            id="description"
-            ref={descriptionRef}
-          ></textarea>
-        </form>
+        <CreateEventModalContent
+          titleRef={titleRef}
+          descriptionRef={descriptionRef}
+          priceRef={priceRef}
+          dateRef={dateRef}
+        />
       </Modal>
     </div>
   )

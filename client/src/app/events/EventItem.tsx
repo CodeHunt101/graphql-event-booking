@@ -1,6 +1,7 @@
 import Modal from '../components/Modal/Modal'
+import EventItemModalContent from './EventItemModalContent'
 
-type CreatorProps = {
+export type UserProps = {
   _id: string
   email?: string
 }
@@ -10,7 +11,7 @@ export type EventProps = {
   description: string
   price: number
   date: string
-  creator: CreatorProps
+  creator: UserProps
 }
 
 const EventItem = ({
@@ -20,7 +21,7 @@ const EventItem = ({
   showModal,
   selectEvent,
   confirmText,
-  handleBookEvent
+  handleBookEvent,
 }: {
   keyId: string
   event: EventProps
@@ -30,21 +31,21 @@ const EventItem = ({
   confirmText: string
   handleBookEvent: () => void
 }) => {
+  const { title, price, date, creator } = event
   return (
     <div className="card w-96 bg-base-100 shadow-xl">
       <div className="card-body">
-        <h2 className="card-title">{event.title}</h2>
+        <h2 className="card-title">{title}</h2>
         <p>
-          ${event.price} {new Date(event.date).toLocaleDateString()}
+          ${price} {new Date(date).toLocaleDateString()}
         </p>
         <div className="card-actions justify-end">
-          {authUserId !== event.creator._id || !authUserId ? (
+          {authUserId !== creator._id || !authUserId ? (
             <button
               onClick={() => {
                 showModal(keyId)
                 selectEvent(event)
-              }
-              }
+              }}
               className="btn btn-primary"
             >
               View Details
@@ -60,17 +61,7 @@ const EventItem = ({
           onConfirm={handleBookEvent}
           confirmText={confirmText}
         >
-          <h1>{event.title}</h1>
-          <p>{event.description}</p>
-          <p>
-            <b>Price:</b> ${`${event.price}`}
-          </p>
-          <p>
-            <b>Date:</b> {new Date(event.date).toLocaleString()}
-          </p>
-          <p>
-            <b>Creator:</b> {`${event.creator.email}`}
-          </p>
+          <EventItemModalContent {...event} />
         </Modal>
       </div>
     </div>
