@@ -12,9 +12,17 @@ const EventsPage = () => {
   const priceRef = useRef<HTMLInputElement>(null)
   const dateRef = useRef<HTMLInputElement>(null)
   const descriptionRef = useRef<HTMLTextAreaElement>(null)
+  const [selectedEvent, setSelectedEvent] = useState<EventProps | null>(null)
 
-  const showEventModal = (id: string) =>
+  const showEventModal = (id: string) => {
     (document.getElementById(id) as HTMLDialogElement).showModal()
+  }
+
+  const handleSelectEvent = (event: EventProps) => {
+    const selectedEvent = events?.find(e => e._id === event._id) ?? null
+    console.log({selectedEvent})
+    setSelectedEvent(()=>selectedEvent)
+  }
 
   const fetchEvents = async () => {
     const requestBody = {
@@ -62,6 +70,9 @@ const EventsPage = () => {
             event={event}
             authUserId={userId}
             showModal={() => showEventModal(`event-details-${index}`)}
+            selectEvent={handleSelectEvent}
+            confirmText={token ? 'Book' : 'Confirm'}
+            handleBookEvent={handleBookEvent}
           />
         </div>
       )
@@ -71,6 +82,45 @@ const EventsPage = () => {
   useEffect(() => {
     fetchEvents()
   }, [])
+
+  const handleBookEvent = async () => {
+    if (!token) {
+      setSelectedEvent(null)
+      return
+    }
+
+    if (!selectedEvent) return
+    const requestBody = {
+      query: `
+        mutation {
+          bookEvent(eventId: "${selectedEvent._id}") {
+            _id
+            createdAt
+            updatedAt
+          }
+        }
+      `,
+    }
+
+    try {
+      const response = await fetch('http://localhost:3000/graphql', {
+        method: 'POST',
+        body: JSON.stringify(requestBody),
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      if (response.status !== 200 && response.status !== 201) {
+        throw new Error('Failed!')
+      }
+      const jsonResp = await response.json()
+      console.log(jsonResp)
+      setSelectedEvent(null)
+    } catch (error) {
+      console.log(error)
+    }
+  }
 
   const handleModalConfirm = async () => {
     if (!userId) return

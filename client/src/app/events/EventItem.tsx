@@ -18,11 +18,17 @@ const EventItem = ({
   event,
   authUserId,
   showModal,
+  selectEvent,
+  confirmText,
+  handleBookEvent
 }: {
   keyId: string
   event: EventProps
   authUserId?: string
   showModal: (id: string) => void
+  selectEvent: (event: EventProps) => void
+  confirmText: string
+  handleBookEvent: () => void
 }) => {
   return (
     <div className="card w-96 bg-base-100 shadow-xl">
@@ -34,7 +40,11 @@ const EventItem = ({
         <div className="card-actions justify-end">
           {authUserId !== event.creator._id || !authUserId ? (
             <button
-              onClick={() => showModal(keyId)}
+              onClick={() => {
+                showModal(keyId)
+                selectEvent(event)
+              }
+              }
               className="btn btn-primary"
             >
               View Details
@@ -47,8 +57,8 @@ const EventItem = ({
           idName={keyId}
           canConfirm
           canCancel
-          onConfirm={() => null}
-          confirmText="Book event"
+          onConfirm={handleBookEvent}
+          confirmText={confirmText}
         >
           <h1>{event.title}</h1>
           <p>{event.description}</p>
