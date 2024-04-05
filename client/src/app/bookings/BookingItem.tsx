@@ -16,15 +16,15 @@ const BookingItem = ({
   showModal,
   selectBooking,
   confirmText,
-}: // handleCancelBooking
-{
+  handleCancelBooking,
+}: {
   keyId: string
   booking: BookingProps
   authUserId?: string
   showModal: (id: string) => void
   selectBooking: (booking: BookingProps) => void
   confirmText: string
-  // handleCancelBooking: () => void
+  handleCancelBooking: () => void
 }) => {
   const { createdAt } = booking
   const { title } = booking.event
@@ -48,7 +48,7 @@ const BookingItem = ({
           idName={keyId}
           canConfirm
           canCancel
-          onConfirm={() => null}
+          onConfirm={handleCancelBooking}
           confirmText={confirmText}
         >
           <BookingItemModalContent {...booking.event} />
