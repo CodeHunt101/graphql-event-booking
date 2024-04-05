@@ -1,4 +1,3 @@
-import { Request } from 'express'
 import { dateToString } from '../../helpers/date'
 import { EventDoc, EventModel } from '../../models/event'
 import { UserModel } from '../../models/user'
@@ -41,12 +40,12 @@ export const eventResolvers = {
       description,
       price: +price,
       date,
-      creator: req.userId, //Dummy value until users can create events
+      creator: req.userId,
     })
 
     try {
       const savedEvent = await event.save()
-      const foundUser = await UserModel.findById(req.userId) //Dummy value until users can create events
+      const foundUser = await UserModel.findById(req.userId)
       if (!foundUser) {
         throw new Error('User not found')
       }

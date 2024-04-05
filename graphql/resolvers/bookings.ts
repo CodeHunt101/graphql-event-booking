@@ -4,6 +4,7 @@ import { EventDoc, EventModel } from '../../models/event'
 import { transformEvent } from './events'
 import { fetchEvent, fetchUser } from './merge'
 import { IGetUserAuthInfoRequest } from '../../middleware/is-auth'
+import { UserModel } from '../../models/user'
 
 export const transformBooking = ({
   id,
@@ -25,7 +26,9 @@ export const bookingResolvers = {
       throw new Error('Unauthenticated')
     }
     try {
-      const bookings = await BookingModel.find()
+      const foundUser = await UserModel.findById(req.userId)
+      if (!foundUser) return
+      const bookings = await BookingModel.find({user: foundUser})
       const result = bookings.map(transformBooking)
       console.log(result)
       return result

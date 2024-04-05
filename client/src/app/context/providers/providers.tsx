@@ -17,7 +17,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const logout: Logout = () => {
     setToken('')
     setUserId('')
-    if (token) router.push('/auth')
+    if (!token) router.push('/auth')
   }
 
   return (
