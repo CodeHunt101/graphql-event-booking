@@ -30,7 +30,7 @@ export const bookingResolvers = {
       if (!foundUser) return
       const bookings = await BookingModel.find({user: foundUser})
       const result = bookings.map(transformBooking)
-      console.log(result)
+      // console.log(result)
       return result
     } catch (err) {
       console.log(err)

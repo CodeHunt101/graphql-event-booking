@@ -72,8 +72,8 @@ const BookingList = () => {
     if (!selectedBooking) return
     const requestBody = {
       query: `
-        mutation {
-          cancelBooking(bookingId: "${selectedBooking?._id}") {
+        mutation CancelBooking($id: ID!) {
+          cancelBooking(bookingId: $id) {
             _id
             title
             description
@@ -86,6 +86,9 @@ const BookingList = () => {
           }
         }
       `,
+      variables: {
+        id: selectedBooking._id
+      }
     }
 
     try {

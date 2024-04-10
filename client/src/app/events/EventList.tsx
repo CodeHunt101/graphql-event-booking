@@ -25,14 +25,17 @@ const EventList = ({
     if (!selectedEvent) return
     const requestBody = {
       query: `
-        mutation {
-          bookEvent(eventId: "${selectedEvent._id}") {
+        mutation BookEvent ($id: ID!) {
+          bookEvent(eventId: $id) {
             _id
             createdAt
             updatedAt
           }
         }
       `,
+      variables: {
+        id: selectedEvent._id
+      }
     }
 
     try {

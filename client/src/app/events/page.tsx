@@ -62,13 +62,13 @@ const EventsPage = () => {
   const handleModalConfirm = async () => {
     if (!userId) return
     const title = titleRef.current?.value
-    const price = priceRef.current?.value
+    const price = Number(priceRef.current?.value)
     const date = dateRef.current?.value
     const description = descriptionRef.current?.value
 
     if (
       title?.trim().length === 0 ||
-      Number(price) < 0 ||
+      price < 0 ||
       date?.trim().length === 0 ||
       description?.trim().length === 0
     ) {
@@ -78,8 +78,8 @@ const EventsPage = () => {
 
     const requestBody = {
       query: `
-        mutation {
-          createEvent(eventInput: {title: "${title}", description: "${description}", price: ${price}, date: "${date}"}) {
+        mutation CreateEvent ($title: String!, $description: String!, $price: Float!, $date: String!) {
+          createEvent(eventInput: {title: $title, description: $description, price: $price, date: $date}) {
             _id
             title
             description
@@ -92,6 +92,12 @@ const EventsPage = () => {
           }
         }
       `,
+      variables: {
+        title,
+        description,
+        price,
+        date,
+      },
     }
 
     try {
